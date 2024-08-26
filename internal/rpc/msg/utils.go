@@ -15,14 +15,15 @@
 package msg
 
 import (
+	"errors"
 	"github.com/openimsdk/tools/errs"
 	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func IsNotFound(err error) bool {
-	switch errs.Unwrap(err) {
-	case redis.Nil, mongo.ErrNoDocuments:
+	switch unwrap := errs.Unwrap(err); {
+	case errors.Is(unwrap, redis.Nil), errors.Is(unwrap, mongo.ErrNoDocuments):
 		return true
 	default:
 		return false

@@ -502,7 +502,7 @@ func (db *commonMsgDatabase) getMsgBySeqsRange(ctx context.Context, userID strin
 // This ensures that their message retrieval starts from the point they joined.
 func (db *commonMsgDatabase) GetMsgBySeqsRange(ctx context.Context, userID string, conversationID string, begin, end, num, userMaxSeq int64) (int64, int64, []*sdkws.MsgData, error) {
 	userMinSeq, err := db.seqUser.GetUserMinSeq(ctx, conversationID, userID)
-	if err != nil && errs.Unwrap(err) != redis.Nil {
+	if err != nil && !errors.Is(errs.Unwrap(err), redis.Nil) {
 		return 0, 0, nil, err
 	}
 	minSeq, err := db.seqConversation.GetMinSeq(ctx, conversationID)
@@ -580,7 +580,7 @@ func (db *commonMsgDatabase) GetMsgBySeqsRange(ctx context.Context, userID strin
 
 func (db *commonMsgDatabase) GetMsgBySeqs(ctx context.Context, userID string, conversationID string, seqs []int64) (int64, int64, []*sdkws.MsgData, error) {
 	userMinSeq, err := db.seqUser.GetUserMinSeq(ctx, conversationID, userID)
-	if err != nil && errs.Unwrap(err) != redis.Nil {
+	if err != nil && !errors.Is(errs.Unwrap(err), redis.Nil) {
 		return 0, 0, nil, err
 	}
 	minSeq, err := db.seqConversation.GetMinSeq(ctx, conversationID)
@@ -602,7 +602,7 @@ func (db *commonMsgDatabase) GetMsgBySeqs(ctx context.Context, userID string, co
 	}
 	successMsgs, failedSeqs, err := db.msg.GetMessagesBySeq(ctx, conversationID, newSeqs)
 	if err != nil {
-		if err != redis.Nil {
+		if !errors.Is(err, redis.Nil) {
 			log.ZError(ctx, "get message from redis exception", err, "failedSeqs", failedSeqs, "conversationID", conversationID)
 		}
 	}
